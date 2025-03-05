@@ -27,17 +27,6 @@ public record ChannelDto(
     );
   }
 
-  public static ChannelDto from(Channel channel) {
-
-    return new ChannelDto(
-        channel.getId(),
-        channel.getType(),
-        channel.getName(),
-        channel.getDescription(),
-        null,
-        null
-    );
-  }
 }
 
 

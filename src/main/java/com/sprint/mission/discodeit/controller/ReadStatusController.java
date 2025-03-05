@@ -34,8 +34,7 @@ public class ReadStatusController implements ReadStatusSwagger {
       @RequestBody ReadStatusCreateRequest request
   ) {
     ReadStatus readStatus = readStatusService.create(request);
-    ReadStatusResponse response = ReadStatusResponse.from(readStatus);
-    return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    return ResponseEntity.status(HttpStatus.CREATED).body(ReadStatusResponse.from(readStatus));
   }
 
 //  @PatchMapping(value = "/{readStatusId}")
@@ -57,15 +56,6 @@ public class ReadStatusController implements ReadStatusSwagger {
     return ResponseEntity.ok(ReadStatusResponse.from(readStatus));
   }
 
-  //  @GetMapping(value = "/users/{userId}")
-  public ResponseEntity<ReadStatusListResponse> findV0(
-      @PathVariable UUID userId
-  ) {
-    List<ReadStatus> readStatuses = readStatusService.findAllByUserId(userId);
-
-    return ResponseEntity.ok(ReadStatusListResponse.from(readStatuses));
-  }
-
 
   @GetMapping
   public ResponseEntity<List<ReadStatusResponse>> findAll(
@@ -75,5 +65,14 @@ public class ReadStatusController implements ReadStatusSwagger {
         .stream().map(ReadStatusResponse::from).toList();
 
     return ResponseEntity.ok(readStatuses);
+  }
+
+  //  @GetMapping(value = "/users/{userId}")
+  public ResponseEntity<ReadStatusListResponse> findV0(
+      @PathVariable UUID userId
+  ) {
+    List<ReadStatus> readStatuses = readStatusService.findAllByUserId(userId);
+
+    return ResponseEntity.ok(ReadStatusListResponse.from(readStatuses));
   }
 }

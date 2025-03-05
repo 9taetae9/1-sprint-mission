@@ -19,7 +19,7 @@ public record ReadStatusResponse(
     Instant updatedAt,
     UUID userId,
     UUID channelId,
-    Instant LastReadAt
+    Instant lastReadAt
 ) {
 
   public static ReadStatusResponse from(ReadStatus readStatus) {

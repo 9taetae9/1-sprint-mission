@@ -1,7 +1,6 @@
 package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.docs.AuthSwagger;
-import com.sprint.mission.discodeit.dto.data.UserDto;
 import com.sprint.mission.discodeit.dto.request.LoginRequest;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.AuthService;
@@ -21,8 +20,8 @@ public class AuthController implements AuthSwagger {
   private final AuthService authService;
 
   @PostMapping("/login")
-  public ResponseEntity<User> login(@RequestBody LoginRequest request) {
-    User user = authService.login(request);
+  public ResponseEntity<User> login(@RequestBody LoginRequest loginRequest) {
+    User user = authService.login(loginRequest);
 
     return ResponseEntity.ok()
         .body(user);

@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.repository.file;
 
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
+import java.io.EOFException;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -11,13 +12,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
+@Slf4j
 @ConditionalOnProperty(name = "discodeit.repository.type", havingValue = "file")
 @Repository
 public class FileUserStatusRepository implements UserStatusRepository {
@@ -45,6 +49,9 @@ public class FileUserStatusRepository implements UserStatusRepository {
 
   @Override
   public UserStatus save(UserStatus userStatus) {
+    if (userStatus == null) {
+      throw new IllegalArgumentException("UserStatus cannot be null");
+    }
     Path path = resolvePath(userStatus.getId());
     try (
         FileOutputStream fos = new FileOutputStream(path.toFile());
@@ -77,6 +84,7 @@ public class FileUserStatusRepository implements UserStatusRepository {
   @Override
   public Optional<UserStatus> findByUserId(UUID userId) {
     return findAll().stream()
+        .filter(Objects::nonNull)// 불완전한 쓰기 작업으로 인해 UserStatus 목록에 null 항목이 포함 가능성 고려
         .filter(userStatus -> userStatus.getUserId().equals(userId))
         .findFirst();
   }
@@ -91,11 +99,16 @@ public class FileUserStatusRepository implements UserStatusRepository {
                 FileInputStream fis = new FileInputStream(path.toFile());
                 ObjectInputStream ois = new ObjectInputStream(fis)
             ) {
+
               return (UserStatus) ois.readObject();
+            } catch (EOFException e) {
+              log.error("파일 읽기 실패: {}", path, e);
+              return null; //null 반환후 마지막에 필터링
             } catch (IOException | ClassNotFoundException e) {
               throw new RuntimeException(e);
             }
           })
+          .filter(Objects::nonNull)//null 제거
           .toList();
     } catch (IOException e) {
       throw new RuntimeException(e);

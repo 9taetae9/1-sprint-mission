@@ -16,8 +16,8 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -38,16 +38,15 @@ public class UserController implements UserSwagger { //implements UserSwagger
   private final UserService userService;
   private final UserStatusService userStatusService;
 
-  @PostMapping(consumes = "multipart/form-data")
+  @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<UserCreateResponse> create(
       @RequestPart("userCreateRequest") UserCreateRequest request,
       @RequestPart(value = "profile",
           required = false) MultipartFile profile
   ) {
     User user = userService.create(request, fileConverter.convertToBinaryRequest(profile));
-    UserCreateResponse createResponse = UserCreateResponse.from(user);
     return ResponseEntity.status(HttpStatus.CREATED)
-        .body(createResponse);
+        .body(UserCreateResponse.from(user));
   }
   /*
   UUID id,
@@ -60,7 +59,7 @@ public class UserController implements UserSwagger { //implements UserSwagger
    */
 
 
-  @PatchMapping(value = "/{userId}", consumes = "multipart/form-data")
+  @PatchMapping(value = "/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<UserUpdateResponse> update(
       @PathVariable UUID userId,
       @RequestPart("userUpdateRequest") UserUpdateRequest request,

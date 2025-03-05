@@ -75,7 +75,7 @@ public class ChannelController implements ChannelSwagger {
     return ResponseEntity.noContent().build();
   }
 
-//    @GetMapping("/user/{userId}")
+//    @GetMapping("/user/{userId}/list")
 //  public ResponseEntity<ChannelListDto> findChannelsByUserV0(
 //      @PathVariable UUID userId
 //  ) {

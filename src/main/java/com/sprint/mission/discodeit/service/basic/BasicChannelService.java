@@ -13,6 +13,8 @@ import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -44,7 +46,7 @@ public class BasicChannelService implements ChannelService {
     Channel createdChannel = channelRepository.save(channel);
 
     request.participantIds().stream()
-        .map(userId -> new ReadStatus(userId, createdChannel.getId(), Instant.MIN))
+        .map(userId -> new ReadStatus(userId, createdChannel.getId(), channel.getCreatedAt()))
         .forEach(readStatusRepository::save);
 
     return createdChannel;
@@ -88,13 +90,12 @@ public class BasicChannelService implements ChannelService {
         .map(ReadStatus::getChannelId)
         .toList();
 //특정 사용자가 볼 수 있는 모든 채널 목록을 조회 => 개인 채널 + 공개 채널
-    List<ChannelDto> viewableChannels = channelRepository.findAll().stream()
+
+    return channelRepository.findAll().stream()
         .filter(channel ->
             channel.getType().equals(ChannelType.PUBLIC)
                 || userSubscribedChannelIds.contains(channel.getId()))
-        .map(channel -> ChannelDto.from(channel)).toList();
-
-    return viewableChannels;
+        .map(this::toDto).toList();
   }
 
   @Override
@@ -141,5 +142,32 @@ public class BasicChannelService implements ChannelService {
         .map(Message::getCreatedAt)
         .orElse(Instant.MIN);
     return lastMessageAt;
+  }
+
+  private ChannelDto toDto(Channel channel) {
+    // 1. 마지막 메시지 시간 조회
+    Instant lastMessageAt = messageRepository.findAllByChannelId(channel.getId())
+        .stream()
+        .sorted(Comparator.comparing(Message::getCreatedAt).reversed())
+        .map(Message::getCreatedAt)
+        .limit(1)
+        .findFirst()
+        .orElse(Instant.MIN);
+
+    List<UUID> participantIds = new ArrayList<>();
+    if (channel.getType() == ChannelType.PRIVATE) {
+      readStatusRepository.findAllByChannelId(channel.getId())
+          .stream()
+          .map(ReadStatus::getUserId)
+          .forEach(participantIds::add);
+    }
+    return new ChannelDto(
+        channel.getId(),
+        channel.getType(),
+        channel.getName(),
+        channel.getDescription(),
+        participantIds,
+        lastMessageAt
+    );
   }
 }

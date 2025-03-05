@@ -15,7 +15,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
-import org.springframework.ui.Model;
 import org.springframework.web.multipart.MultipartFile;
 
 @Tag(name = "User", description = "User API")

@@ -62,24 +62,23 @@ public class MessageController implements MessageSwagger {
       @RequestBody MessageUpdateRequest request
   ) {
     Message message = messageService.update(messageId, request);
-    MessageResponse response = MessageResponse.from(message);
-    return ResponseEntity.status(HttpStatus.OK).body(response);
+    return ResponseEntity.status(HttpStatus.OK).body(MessageResponse.from(message));
   }
+//
+//  @GetMapping(value = "/{messageId}")
+//  public ResponseEntity<MessageResponse> find(
+//      @PathVariable UUID messageId
+//  ) {
+//    Message message = messageService.find(messageId);
+//    return ResponseEntity.ok(MessageResponse.from(message));
+//  }
 
-  @GetMapping(value = "/{messageId}")
-  public ResponseEntity<MessageResponse> find(
+  @DeleteMapping(value = "/{messageId}")
+  public ResponseEntity<Void> delete(
       @PathVariable UUID messageId
   ) {
-    Message message = messageService.find(messageId);
-    return ResponseEntity.ok(MessageResponse.from(message));
-  }
-
-  //    @GetMapping(value = "/channels/{channelId}")
-  public ResponseEntity<MessageListResponse> findMessagesByChannelV0(
-      @PathVariable UUID channelId
-  ) {
-    List<Message> messages = messageService.findAllByChannelId(channelId);
-    return ResponseEntity.ok(MessageListResponse.from(messages));
+    messageService.delete(messageId);
+    return ResponseEntity.noContent().build();
   }
 
   @GetMapping
@@ -91,12 +90,11 @@ public class MessageController implements MessageSwagger {
     return ResponseEntity.ok(messages);
   }
 
-  @DeleteMapping(value = "/{messageId}")
-  public ResponseEntity<Void> delete(
-      @PathVariable UUID messageId
+  //    @GetMapping(value = "/channels/{channelId}")
+  public ResponseEntity<MessageListResponse> findMessagesByChannelV0(
+      @PathVariable UUID channelId
   ) {
-    messageService.delete(messageId);
-    return ResponseEntity.noContent().build();
+    List<Message> messages = messageService.findAllByChannelId(channelId);
+    return ResponseEntity.ok(MessageListResponse.from(messages));
   }
-
 }
