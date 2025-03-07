@@ -20,7 +20,6 @@ public class UserStatus implements Serializable {
   public UserStatus(UUID userId, Instant lastActiveAt) {
     this.id = UUID.randomUUID();
     this.createdAt = Instant.now();
-    //
     this.userId = userId;
     this.lastActiveAt = lastActiveAt;
   }
@@ -37,7 +36,7 @@ public class UserStatus implements Serializable {
     }
   }
 
-  public Boolean isOnline() {
+  public boolean isOnline() {
     Instant instantFiveMinutesAgo = Instant.now().minus(Duration.ofMinutes(5));
 
     return lastActiveAt.isAfter(instantFiveMinutesAgo);

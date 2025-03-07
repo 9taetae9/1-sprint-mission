@@ -84,7 +84,7 @@ public class FileUserStatusRepository implements UserStatusRepository {
   @Override
   public Optional<UserStatus> findByUserId(UUID userId) {
     return findAll().stream()
-        .filter(Objects::nonNull)// 불완전한 쓰기 작업으로 인해 UserStatus 목록에 null 항목이 포함 가능성 고려
+        .filter(Objects::nonNull)// 불완전한 쓰기 작업으로 인한 UserStatus 목록에 null 항목이 포함 가능성 고려
         .filter(userStatus -> userStatus.getUserId().equals(userId))
         .findFirst();
   }

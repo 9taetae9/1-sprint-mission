@@ -24,13 +24,13 @@ public interface ChannelSwagger {
   @ApiResponses(value = {
       @ApiResponse(responseCode = "201", description = "Public Channel이 성공적으로 생성됨")
   })
-  ResponseEntity<PublicChannelCreateResponse> createPublic(PublicChannelCreateRequest request);
+  ResponseEntity<ChannelDto> createPublic(PublicChannelCreateRequest request);
 
   @Operation(operationId = "create_4", summary = "Private Channel 생성")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "201", description = "Private Channel이 성공적으로 생성됨")
   })
-  ResponseEntity<PrivateChannelCreateResponse> createPrivate(PrivateChannelCreateRequest request);
+  ResponseEntity<ChannelDto> createPrivate(PrivateChannelCreateRequest request);
 
   @Operation(operationId = "update_3", summary = "Channel 정보 수정")
   @ApiResponses(value = {
@@ -42,7 +42,7 @@ public interface ChannelSwagger {
           examples = @ExampleObject(value = "Channel with id {channelId} not found")
       ))
   })
-  ResponseEntity<PublicChannelUpdateResponse> update(UUID channelId,
+  ResponseEntity<ChannelDto> update(UUID channelId,
       PublicChannelUpdateRequest request);
 
   @Operation(operationId = "delete_2", summary = "Channel 삭제")

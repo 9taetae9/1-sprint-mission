@@ -1,13 +1,13 @@
 package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.docs.BinaryContentSwagger;
-import com.sprint.mission.discodeit.dto.response.BinaryContentListResponse;
-import com.sprint.mission.discodeit.dto.response.BinaryContentResponse;
+import com.sprint.mission.discodeit.dto.data.BinaryContentDto;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,36 +21,36 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class BinaryContentController implements BinaryContentSwagger {
 
-  // implements BinaryContentSwagger
   private final BinaryContentService binaryContentService;
 
   @GetMapping(value = "/{binaryContentId}")
-  public ResponseEntity<BinaryContentResponse> find(
+  public ResponseEntity<BinaryContentDto> find(
       @PathVariable UUID binaryContentId
   ) {
     BinaryContent binaryContent = binaryContentService.find(binaryContentId);
-    return ResponseEntity.ok(BinaryContentResponse.from(binaryContent));
-  }
-
-
-  //    @GetMapping("/batch")  요구사항 맞추기위해 일단 보류
-//  @GetMapping
-  public ResponseEntity<BinaryContentListResponse> batchV0(
-      @RequestParam List<UUID> ids
-  ) {
-    List<BinaryContent> contents = binaryContentService.findAllByIdIn(ids);
-    return ResponseEntity.ok()
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(BinaryContentListResponse.from(contents));
+    return ResponseEntity.ok(BinaryContentDto.from(binaryContent));
   }
 
   @GetMapping
-  public ResponseEntity<List<BinaryContentResponse>> batch(
+  public ResponseEntity<List<BinaryContentDto>> batch(
       @RequestParam("binaryContentIds") List<UUID> ids
   ) {
-    List<BinaryContentResponse> contents = binaryContentService.findAllByIdIn(ids)
-        .stream().map(BinaryContentResponse::from).toList();
+    List<BinaryContentDto> contents = binaryContentService.findAllByIdIn(ids)
+        .stream().map(BinaryContentDto::from).toList();
     return ResponseEntity.ok()
         .body(contents);
+  }
+
+  @GetMapping("/{binaryContentId}/download")
+  public ResponseEntity<byte[]> download(
+      @PathVariable("binaryContentId") UUID binaryContentId
+  ) {
+    BinaryContent binaryContent = binaryContentService.find(binaryContentId);
+    return ResponseEntity.ok()
+        .contentType(MediaType.parseMediaType(binaryContent.getContentType()))
+        .header(HttpHeaders.CONTENT_DISPOSITION,
+            "attachment; filename=\"" + binaryContent.getFileName() + "\"")
+        .contentLength(binaryContent.getSize())
+        .body(binaryContent.getBytes());
   }
 }

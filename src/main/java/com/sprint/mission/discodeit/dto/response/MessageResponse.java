@@ -5,18 +5,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-/*
-  private UUID id;
-  private Instant createdAt;
-  private Instant updatedAt;
-  //
-  private String content;
-  //
-  private UUID channelId;
-  private UUID authorId;
-  private List<UUID> attachmentIds;
- */
-
 public record MessageResponse(
     UUID id,
     Instant createdAt,

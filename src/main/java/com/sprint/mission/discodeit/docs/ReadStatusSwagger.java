@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.docs;
 
+import com.sprint.mission.discodeit.dto.data.ReadStatusDto;
 import com.sprint.mission.discodeit.dto.request.ReadStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.request.ReadStatusUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.ReadStatusResponse;
@@ -27,7 +28,7 @@ public interface ReadStatusSwagger {
           examples = @ExampleObject(value = "ReadStatus with userId {userId} and channelId {channelId} already exists")
       ))
   })
-  ResponseEntity<ReadStatusResponse> create(
+  ResponseEntity<ReadStatusDto> create(
       ReadStatusCreateRequest request
   );
 
@@ -38,7 +39,7 @@ public interface ReadStatusSwagger {
           examples = @ExampleObject(value = "ReadStatus with id {readStatusId} not found")
       ))
   })
-  ResponseEntity<ReadStatusResponse> update(
+  ResponseEntity<ReadStatusDto> update(
       UUID readStatusId,
       ReadStatusUpdateRequest request
   );
@@ -48,7 +49,7 @@ public interface ReadStatusSwagger {
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Message 읽음 상태 목록 조회 성공")
   })
-  ResponseEntity<List<ReadStatusResponse>> findAll(
+  ResponseEntity<List<ReadStatusDto>> findAll(
       @RequestParam UUID userId
   );
 }

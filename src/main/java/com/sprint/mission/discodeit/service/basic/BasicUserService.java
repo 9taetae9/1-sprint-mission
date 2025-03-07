@@ -65,29 +65,17 @@ public class BasicUserService implements UserService {
 
   @Override
   public UserDto find(UUID userId) {
-    Boolean online = userStatusRepository.findByUserId(userId)
-        .map(UserStatus::isOnline)
-        .orElse(null);
-
-    return userRepository.findById(userId)
-        .map(user -> UserDto.from(user, online))
+    User user = userRepository.findById(userId)
         .orElseThrow(() -> new NoSuchElementException("User with id " + userId + " not found"));
-  }
 
-//  @Override
-//  public UserListDto findAll() {
-//    List<UserDto> userDtos = userRepository.findAll()
-//        .stream()
-//        .map(user -> {
-//          Boolean online =
-//              userStatusRepository.findByUserId(user.getId())
-//                  .map(UserStatus::isOnline)
-//                  .orElse(null);
-//          return UserDto.from(user, online);
-//        })
-//        .toList();
-//    return UserListDto.from(userDtos);
-//  }
+    Optional<BinaryContent> binaryContentOpt = binaryContentRepository.findById(
+        user.getProfileId());
+    boolean isOnline = userStatusRepository.findByUserId(userId)
+        .map(UserStatus::isOnline)
+        .orElse(false);
+
+    return UserDto.from(user, binaryContentOpt.get(), isOnline);
+  }
 
   @Override
   public List<UserDto> findAll() {

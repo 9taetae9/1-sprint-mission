@@ -1,24 +1,35 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.data.ChannelDto;
+import com.sprint.mission.discodeit.dto.data.UserDto;
 import com.sprint.mission.discodeit.dto.request.PrivateChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.request.PublicChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.request.PublicChannelUpdateRequest;
+import com.sprint.mission.discodeit.dto.response.ReadStatusResponse;
+import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.ReadStatus;
+import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.entity.UserStatus;
+import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
+import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
+import io.swagger.v3.oas.models.security.SecurityScheme.In;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +41,9 @@ public class BasicChannelService implements ChannelService {
   //
   private final ReadStatusRepository readStatusRepository;
   private final MessageRepository messageRepository;
+  private final UserRepository userRepository;
+  private final BinaryContentRepository binaryContentRepository;
+  private final UserStatusRepository userStatusRepository;
 
   @Override
   public Channel create(PublicChannelCreateRequest request) {
@@ -60,29 +74,32 @@ public class BasicChannelService implements ChannelService {
 
     Instant lastMessageAt = getLastMessageTime(channel.getId());
 
-    List<UUID> participantIds = getParticipantIds(channel);
+    List<UserDto> participants = readStatusRepository.findAllByChannelId(channel.getId())
+        .stream()
+        .map(ReadStatus::getUserId)
+        .map(userId -> {
+          User user = userRepository.findById(userId)
+              .orElseThrow(() -> new NoSuchElementException("User not found"));
 
-    return ChannelDto.from(channel, lastMessageAt, participantIds);
+          // 사용자 프로필 이미지 조회
+          BinaryContent profile = binaryContentRepository.findById(user.getProfileId()).get();
+
+          Optional<UserStatus> userStatusOpt = userStatusRepository.findByUserId(userId);
+          Boolean isOnline;
+          if (userStatusOpt.isPresent()) {
+            isOnline = userStatusOpt.get().isOnline();
+          } else {
+            isOnline = false;
+          }
+
+          return UserDto.from(user, profile, isOnline);
+        })
+        .collect(Collectors.toList());
+
+    return ChannelDto.from(channel, participants, lastMessageAt);
+
   }
 
-//
-//  @Override
-//  public ChannelListDto findAllByUserId(UUID userId) {
-//
-//    List<UUID> userSubscribedChannelIds = readStatusRepository.findAllByUserId(userId).stream()
-//        .map(ReadStatus::getChannelId)
-//        .toList();
-
-  /// /특정 사용자가 볼 수 있는 모든 채널 목록을 조회 => 개인 채널 + 공개 채널
-//    List<UUID> viewableChannelIds = channelRepository.findAll().stream()
-//        .filter(channel ->
-//            channel.getType().equals(ChannelType.PUBLIC)
-//                || userSubscribedChannelIds.contains(channel.getId()))
-//        .map(channel -> channel.getId())
-//        .toList();
-//
-//    return ChannelListDto.from(viewableChannelIds);
-//  }
   @Override
   public List<ChannelDto> findAllByUserId(UUID userId) {
 

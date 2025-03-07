@@ -4,15 +4,6 @@ import com.sprint.mission.discodeit.entity.ReadStatus;
 import java.time.Instant;
 import java.util.UUID;
 
-/*
-  private UUID id;
-  private Instant createdAt;
-  private Instant updatedAt;
-  //
-  private UUID userId;
-  private UUID channelId;
-  private Instant lastReadAt;
- */
 public record ReadStatusResponse(
     UUID id,
     Instant createdAt,
