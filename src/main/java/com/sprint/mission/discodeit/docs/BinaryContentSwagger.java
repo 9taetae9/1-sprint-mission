@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -34,8 +35,8 @@ public interface BinaryContentSwagger {
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "파일 다운로드 성공")
   })
-  ResponseEntity<byte[]> download(
-      @PathVariable("binaryContentId") UUID id
+  public ResponseEntity<Resource> download(
+      @PathVariable("binaryContentId") UUID binaryContentId
   );
 }
 

@@ -5,6 +5,7 @@ import com.sprint.mission.discodeit.dto.data.ReadStatusDto;
 import com.sprint.mission.discodeit.dto.request.ReadStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.request.ReadStatusUpdateRequest;
 import com.sprint.mission.discodeit.entity.ReadStatus;
+import com.sprint.mission.discodeit.mapper.ReadStatusMapper;
 import com.sprint.mission.discodeit.service.ReadStatusService;
 import java.util.List;
 import java.util.UUID;
@@ -27,12 +28,14 @@ public class ReadStatusController implements ReadStatusSwagger {
 
   private final ReadStatusService readStatusService;
 
+  private final ReadStatusMapper readStatusMapper;
+
   @PostMapping
   public ResponseEntity<ReadStatusDto> create(
       @RequestBody ReadStatusCreateRequest request
   ) {
     ReadStatus readStatus = readStatusService.create(request);
-    return ResponseEntity.status(HttpStatus.CREATED).body(ReadStatusDto.from(readStatus));
+    return ResponseEntity.status(HttpStatus.CREATED).body(readStatusMapper.toDto(readStatus));
   }
 
   @PatchMapping(value = "/{readStatusId}")
@@ -41,7 +44,7 @@ public class ReadStatusController implements ReadStatusSwagger {
       @RequestBody ReadStatusUpdateRequest request
   ) {
     ReadStatus readStatus = readStatusService.update(readStatusId, request);
-    return ResponseEntity.ok(ReadStatusDto.from(readStatus));
+    return ResponseEntity.ok(readStatusMapper.toDto(readStatus));
   }
 
 
@@ -49,9 +52,8 @@ public class ReadStatusController implements ReadStatusSwagger {
   public ResponseEntity<List<ReadStatusDto>> findAll(
       @RequestParam UUID userId
   ) {
-    List<ReadStatusDto> readStatusesDtos = readStatusService.findAllByUserId(userId)
-        .stream().map(ReadStatusDto::from).toList();
-
+    List<ReadStatusDto> readStatusesDtos = readStatusMapper.toDtoList(
+        readStatusService.findAllByUserId(userId));
     return ResponseEntity.ok(readStatusesDtos);
   }
 }

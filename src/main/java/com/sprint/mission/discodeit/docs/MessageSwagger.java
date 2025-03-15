@@ -1,10 +1,8 @@
 package com.sprint.mission.discodeit.docs;
 
 import com.sprint.mission.discodeit.dto.data.MessageDto;
-import com.sprint.mission.discodeit.dto.data.Pageable;
 import com.sprint.mission.discodeit.dto.request.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.request.MessageUpdateRequest;
-import com.sprint.mission.discodeit.dto.response.MessageResponse;
 import com.sprint.mission.discodeit.dto.response.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -14,10 +12,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -62,8 +60,8 @@ public interface MessageSwagger {
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Message 목록 조회 성공")
   })
-  ResponseEntity<PageResponse> findMessagesByChannel(
-      @RequestParam UUID channelId,
-      @RequestParam Pageable pageable
+  ResponseEntity<PageResponse<MessageDto>> findMessagesByChannel(
+      UUID channelId,
+      Pageable pageable
   );
 }

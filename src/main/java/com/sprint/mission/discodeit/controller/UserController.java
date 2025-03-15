@@ -7,14 +7,12 @@ import com.sprint.mission.discodeit.dto.request.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.request.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.dto.request.UserUpdateRequest;
-import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
-import com.sprint.mission.discodeit.mapper.FileConverter;
-import com.sprint.mission.discodeit.repository.file.FileUserStatusRepository;
-import com.sprint.mission.discodeit.service.BinaryContentService;
+import com.sprint.mission.discodeit.mapper.UserStatusMapper;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserStatusService;
+import com.sprint.mission.discodeit.util.FileConverter;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -33,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
@@ -40,8 +39,7 @@ public class UserController implements UserSwagger {
 
   private final UserService userService;
   private final UserStatusService userStatusService;
-  private final BinaryContentService binaryContentService;
-  private final FileUserStatusRepository fileUserStatusRepository;
+  private final UserStatusMapper userStatusMapper;
 
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<UserDto> create(
@@ -51,13 +49,8 @@ public class UserController implements UserSwagger {
   ) {
 
     Optional<BinaryContentCreateRequest> profileRequest = Optional.ofNullable(profile)
-        .flatMap(FileConverter::resolveProfileRequest);
+        .map(FileConverter::resolveProfileRequest);
     User user = userService.create(request, profileRequest);
-
-    BinaryContent binaryContent = null;
-    if (profileRequest.isPresent()) {
-      binaryContent = binaryContentService.find(user.getProfileId());
-    }
 
     UserDto userDto = userService.find(user.getId());
 
@@ -73,8 +66,11 @@ public class UserController implements UserSwagger {
           required = false) MultipartFile profile
   ) {
 
+    Optional<BinaryContentCreateRequest> profileRequest = Optional.ofNullable(profile)
+        .map(FileConverter::resolveProfileRequest);
+
     User user = userService.update(userId, request,
-        FileConverter.resolveProfileRequest(profile));
+        profileRequest);
 
     UserDto userDto = userService.find(user.getId());
     return ResponseEntity.status(HttpStatus.OK)
@@ -89,7 +85,7 @@ public class UserController implements UserSwagger {
   ) {
     UserStatus userStatus = userStatusService.updateByUserId(userId, request);
     return ResponseEntity.status(HttpStatus.OK)
-        .body(UserStatusDto.from(userStatus));
+        .body(userStatusMapper.toDto(userStatus));
   }
 
   @GetMapping

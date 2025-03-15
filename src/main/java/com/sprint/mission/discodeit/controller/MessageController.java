@@ -1,27 +1,24 @@
 package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.docs.MessageSwagger;
-import com.sprint.mission.discodeit.dto.data.BinaryContentDto;
 import com.sprint.mission.discodeit.dto.data.MessageDto;
-import com.sprint.mission.discodeit.dto.data.Pageable;
-import com.sprint.mission.discodeit.dto.data.UserDto;
 import com.sprint.mission.discodeit.dto.request.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.request.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.request.MessageUpdateRequest;
-import com.sprint.mission.discodeit.dto.response.MessageResponse;
 import com.sprint.mission.discodeit.dto.response.PageResponse;
-import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Message;
-import com.sprint.mission.discodeit.mapper.FileConverter;
+import com.sprint.mission.discodeit.mapper.MessageMapper;
+import com.sprint.mission.discodeit.mapper.PageResponseMapper;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.basic.BasicMessageService;
-import java.io.IOException;
-import java.util.ArrayList;
+import com.sprint.mission.discodeit.util.FileConverter;
+import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -41,11 +38,9 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class MessageController implements MessageSwagger {
 
-  // implements MessageSwagger
-  private final FileConverter fileConverter;
   private final BasicMessageService messageService;
-  private final UserService userService;
-  private final BinaryContentService binaryContentService;
+
+  private final MessageMapper messageMapper;
 
   @PostMapping(consumes = "multipart/form-data")
   public ResponseEntity<MessageDto> create(
@@ -54,18 +49,12 @@ public class MessageController implements MessageSwagger {
   ) {
     List<BinaryContentCreateRequest> attachmentRequests = FileConverter.getAttachmentRequests(
         attachments);
-    Message message = messageService.create(request, attachmentRequests);
+    Message savedMessage = messageService.create(request, attachmentRequests);
 
-    UserDto authorDto = userService.find(message.getAuthorId());
-
-    List<BinaryContent> binaryContents = binaryContentService.findAllByIdIn(
-        message.getAttachmentIds());
-    List<BinaryContentDto> binaryContentDtos = binaryContents.stream()
-        .map(BinaryContentDto::from)
-        .toList();
+    Message message = messageService.findWithAllRelationships(savedMessage.getId());
 
     return ResponseEntity.status(HttpStatus.CREATED)
-        .body(MessageDto.from(message, authorDto, binaryContentDtos));
+        .body(messageMapper.toDto(message));
   }
 
 
@@ -75,16 +64,7 @@ public class MessageController implements MessageSwagger {
       @RequestBody MessageUpdateRequest request
   ) {
     Message message = messageService.update(messageId, request);
-    UserDto author = userService.find(message.getAuthorId());
-
-    List<BinaryContent> binaryContents = binaryContentService.findAllByIdIn(
-        message.getAttachmentIds());
-    List<BinaryContentDto> binaryContentDtos = binaryContents.stream()
-        .map(BinaryContentDto::from)
-        .toList();
-
-    return ResponseEntity.status(HttpStatus.OK)
-        .body(MessageDto.from(message, author, binaryContentDtos));
+    return ResponseEntity.ok(messageMapper.toDto(message));
   }
 
   @DeleteMapping(value = "/{messageId}")
@@ -95,14 +75,27 @@ public class MessageController implements MessageSwagger {
     return ResponseEntity.noContent().build();
   }
 
-  @GetMapping
-  public ResponseEntity<PageResponse> findMessagesByChannel(
+  //  @GetMapping
+  public ResponseEntity<PageResponse<MessageDto>> findMessagesByChannel(
       @RequestParam UUID channelId,
-      @RequestParam Pageable pageable
+      Pageable pageable
   ) {
-    List<MessageResponse> messages = messageService.findAllByChannelId(channelId)
-        .stream().map(MessageResponse::from).toList();
-    return ResponseEntity.ok(null);
+    PageResponse<MessageDto> messageDtoPageResponse = messageService.findMessageDtosByChannelId(
+        channelId, pageable);
+    return ResponseEntity.ok(messageDtoPageResponse);
+  }
+
+  @GetMapping
+  public ResponseEntity<PageResponse<MessageDto>> findMessagesByChannel(
+      @RequestParam UUID channelId,
+      @RequestParam(required = false)
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant cursor,
+      Pageable pageable
+  ) {
+    // 커서 기반 페이지네이션 메서드 호출
+    PageResponse<MessageDto> messageDtoPageResponse =
+        messageService.findMessageDtosByChannelIdWithCursor(channelId, cursor, pageable);
+    return ResponseEntity.ok(messageDtoPageResponse);
   }
 
 }
