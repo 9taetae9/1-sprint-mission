@@ -2,46 +2,12 @@ package com.sprint.mission.discodeit.mapper;
 
 import com.sprint.mission.discodeit.dto.data.UserDto;
 import com.sprint.mission.discodeit.entity.User;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-@Component
-public class UserMapper {
+@Mapper(componentModel = "spring", uses = {BinaryContentMapper.class, UserStatusMapper.class})
+public interface UserMapper {
 
-  private final BinaryContentMapper binaryContentMapper;
-
-  public UserMapper(BinaryContentMapper binaryContentMapper) {
-    this.binaryContentMapper = binaryContentMapper;
-  }
-
-  public UserDto toDto(User user) {
-    if (user == null) {
-      return null;
-    }
-
-    boolean isOnline = false;
-    if (user.getStatus() != null) {
-      isOnline = user.getStatus().isOnline();
-    }
-
-    return new UserDto(
-        user.getId(),
-        user.getUsername(),
-        user.getEmail(),
-        binaryContentMapper.toDto(user.getProfile()),
-        isOnline
-    );
-  }
-
-  public List<UserDto> toDtoList(List<User> users) {
-    if (users == null) {
-      return Collections.emptyList();
-    }
-
-    return users.stream()
-        .map(this::toDto)
-        .collect(Collectors.toList());
-  }
+  @Mapping(target = "online", expression = "java(user.getStatus().isOnline())")
+  UserDto toDto(User user);
 }

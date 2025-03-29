@@ -1,14 +1,11 @@
 package com.sprint.mission.discodeit.controller;
 
-import com.sprint.mission.discodeit.docs.ChannelSwagger;
+import com.sprint.mission.discodeit.controller.api.ChannelApi;
 import com.sprint.mission.discodeit.dto.data.ChannelDto;
 import com.sprint.mission.discodeit.dto.request.PrivateChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.request.PublicChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.request.PublicChannelUpdateRequest;
-import com.sprint.mission.discodeit.entity.Channel;
-import com.sprint.mission.discodeit.mapper.ChannelMapper;
 import com.sprint.mission.discodeit.service.ChannelService;
-import com.sprint.mission.discodeit.service.UserService;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -24,57 +21,51 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/channels")
-@RequiredArgsConstructor
-public class ChannelController implements ChannelSwagger {
+public class ChannelController implements ChannelApi {
 
   private final ChannelService channelService;
-  private final UserService userService;
 
-  private final ChannelMapper channelMapper;
-
-  @PostMapping(value = "/public")
-  public ResponseEntity<ChannelDto> createPublic(
-      @RequestBody PublicChannelCreateRequest request
-  ) {
-    Channel channel = channelService.create(request);
-    return ResponseEntity.status(HttpStatus.CREATED)
-        .body(channelMapper.toDto(channel));
+  @PostMapping(path = "public")
+  public ResponseEntity<ChannelDto> create(@RequestBody PublicChannelCreateRequest request) {
+    ChannelDto createdChannel = channelService.create(request);
+    return ResponseEntity
+        .status(HttpStatus.CREATED)
+        .body(createdChannel);
   }
 
-  @PostMapping(value = "/private")//List<UUID> participantIds
-  public ResponseEntity<ChannelDto> createPrivate(
-      @RequestBody PrivateChannelCreateRequest request
-  ) {
-    Channel channel = channelService.create(request);
-
-    return ResponseEntity.status(HttpStatus.CREATED)
-        .body(channelMapper.toDto(channel));
+  @PostMapping(path = "private")
+  public ResponseEntity<ChannelDto> create(@RequestBody PrivateChannelCreateRequest request) {
+    ChannelDto createdChannel = channelService.create(request);
+    return ResponseEntity
+        .status(HttpStatus.CREATED)
+        .body(createdChannel);
   }
 
-  @PatchMapping(value = "/{channelId}")
-  public ResponseEntity<ChannelDto> update(
-      @PathVariable UUID channelId,
-      @RequestBody PublicChannelUpdateRequest request
-  ) {
-    Channel channel = channelService.update(channelId, request);
-
-    return ResponseEntity.status(HttpStatus.OK).body(channelService.find(channelId));
+  @PatchMapping(path = "{channelId}")
+  public ResponseEntity<ChannelDto> update(@PathVariable("channelId") UUID channelId,
+      @RequestBody PublicChannelUpdateRequest request) {
+    ChannelDto updatedChannel = channelService.update(channelId, request);
+    return ResponseEntity
+        .status(HttpStatus.OK)
+        .body(updatedChannel);
   }
 
-  @DeleteMapping(value = "/{channelId}")
-  public ResponseEntity<Void> delete(@PathVariable UUID channelId) {
+  @DeleteMapping(path = "{channelId}")
+  public ResponseEntity<Void> delete(@PathVariable("channelId") UUID channelId) {
     channelService.delete(channelId);
-    return ResponseEntity.noContent().build();
+    return ResponseEntity
+        .status(HttpStatus.NO_CONTENT)
+        .build();
   }
 
   @GetMapping
-  public ResponseEntity<List<ChannelDto>> findAll(
-      @RequestParam UUID userId
-  ) {
-    List<ChannelDto> channelListDto = channelService.findAllByUserId(userId);
-    return ResponseEntity.ok(channelListDto);
+  public ResponseEntity<List<ChannelDto>> findAll(@RequestParam("userId") UUID userId) {
+    List<ChannelDto> channels = channelService.findAllByUserId(userId);
+    return ResponseEntity
+        .status(HttpStatus.OK)
+        .body(channels);
   }
 }
