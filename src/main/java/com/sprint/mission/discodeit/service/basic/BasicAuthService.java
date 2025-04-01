@@ -6,32 +6,48 @@ import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.AuthService;
+
 import java.util.NoSuchElementException;
+
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class BasicAuthService implements AuthService {
 
-  private final UserRepository userRepository;
-  private final UserMapper userMapper;
+    private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
-  @Transactional(readOnly = true)
-  @Override
-  public UserDto login(LoginRequest loginRequest) {
-    String username = loginRequest.username();
-    String password = loginRequest.password();
+    @Transactional(readOnly = true)
+    @Override
+    public UserDto login(LoginRequest loginRequest) {
+        String username = loginRequest.username();
+        String password = loginRequest.password();
 
-    User user = userRepository.findByUsername(username)
-        .orElseThrow(
-            () -> new NoSuchElementException("User with username " + username + " not found"));
 
-    if (!user.getPassword().equals(password)) {
-      throw new IllegalArgumentException("Wrong password");
+        log.info("Processing user login: username={}", username);
+
+        try {
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> {
+                        log.warn("Login failed: user not found - username={}", username);
+                        return new NoSuchElementException("User with username " + username + " not found");
+                    });
+
+            if (!user.getPassword().equals(password)) {
+                log.warn("Login failed: wrong password - username={}", username);
+                throw new IllegalArgumentException("Wrong password");
+            }
+
+            log.info("Login successful: userId={}, username={}", user.getId(), username);
+            return userMapper.toDto(user);
+        } catch (Exception e) {
+            log.error("Error occurred during login process: username={}, error={}", username, e.getMessage(), e);
+            throw e;
+        }
     }
-
-    return userMapper.toDto(user);
-  }
 }
