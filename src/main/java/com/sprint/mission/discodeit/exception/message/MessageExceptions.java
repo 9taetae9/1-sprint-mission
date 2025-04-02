@@ -7,7 +7,7 @@ public final class MessageExceptions {
   private MessageExceptions() {
   }
 
-  public static MessageNotFoundException notFound(UUID messageId) {
+  public static MessageException notFound(UUID messageId) {
     return new MessageNotFoundException(messageId);
   }
 }

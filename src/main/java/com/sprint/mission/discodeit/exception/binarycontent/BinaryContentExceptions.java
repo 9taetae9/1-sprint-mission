@@ -7,11 +7,11 @@ public class BinaryContentExceptions {
   private BinaryContentExceptions() {
   }
 
-  public static BinaryContentNotFoundException notFound(UUID binaryContentId) {
+  public static BinaryContentException notFound(UUID binaryContentId) {
     return new BinaryContentNotFoundException(binaryContentId);
   }
 
-  public static BinaryContentStorageException storageException(String fileName, Exception cause) {
+  public static BinaryContentException storageException(String fileName, Exception cause) {
     return new BinaryContentStorageException(fileName, cause);
   }
 }

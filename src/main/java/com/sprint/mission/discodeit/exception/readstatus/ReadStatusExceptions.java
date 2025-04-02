@@ -2,16 +2,16 @@ package com.sprint.mission.discodeit.exception.readstatus;
 
 import java.util.UUID;
 
-public class ReadStatusExceptions {
+public final class ReadStatusExceptions {
 
   private ReadStatusExceptions() {
   }
 
-  public static ReadStatusNotFoundException notFound(UUID readStatusId) {
+  public static ReadStatusException notFound(UUID readStatusId) {
     return new ReadStatusNotFoundException(readStatusId);
   }
 
-  public static ReadStatusAlreadyExistsException alreadyExists(UUID userId, UUID channelId) {
+  public static ReadStatusException alreadyExists(UUID userId, UUID channelId) {
     return new ReadStatusAlreadyExistsException(userId, channelId);
   }
 }

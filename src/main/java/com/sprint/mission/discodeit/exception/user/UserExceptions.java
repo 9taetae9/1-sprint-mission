@@ -7,23 +7,23 @@ public final class UserExceptions {
   private UserExceptions() {
   }
 
-  public static UserNotFoundException notFound(UUID userId) {
+  public static UserException notFound(UUID userId) {
     return new UserNotFoundException(userId);
   }
 
-  public static UserNotFoundException notFound(String username) {
+  public static UserException notFound(String username) {
     return new UserNotFoundException(username);
   }
 
-  public static UserAlreadyExistsException userNameAlreadyExists(String username) {
+  public static UserException userNameAlreadyExists(String username) {
     return new UserAlreadyExistsException(username);
   }
 
-  public static UserAlreadyExistsException emailAlreadyExists(String email) {
+  public static UserException emailAlreadyExists(String email) {
     return new UserAlreadyExistsException(email, true);
   }
 
-  public static InvalidPasswordException invalidPassword(String username) {
+  public static UserException invalidPassword(String username) {
     return new InvalidPasswordException(username);
   }
 }

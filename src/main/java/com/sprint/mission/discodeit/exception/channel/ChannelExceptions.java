@@ -7,11 +7,11 @@ public final class ChannelExceptions {
   private ChannelExceptions() {
   }
 
-  public static ChannelNotFoundException notFound(UUID channelId) {
+  public static ChannelException notFound(UUID channelId) {
     return new ChannelNotFoundException(channelId);
   }
 
-  public static PrivateChannelUpdateException privateChannelUpdate(UUID channelId) {
+  public static ChannelException privateChannelUpdate(UUID channelId) {
     return new PrivateChannelUpdateException(channelId);
   }
 }

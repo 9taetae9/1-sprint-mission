@@ -5,9 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class ReadStatusAlreadyExistsException extends ReadStatusException {
+class ReadStatusAlreadyExistsException extends ReadStatusException {
 
-  public ReadStatusAlreadyExistsException(UUID userId, UUID channelId) {
+  ReadStatusAlreadyExistsException(UUID userId, UUID channelId) {
     super(ErrorCode.READ_STATUS_ALREADY_EXISTS,
         "ReadStatus with userId " + userId + " and channelId " + channelId + " already exists",
         createReadStatusDetails(userId, channelId));
