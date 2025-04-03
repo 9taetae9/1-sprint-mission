@@ -31,7 +31,7 @@ public enum ErrorCode {
   USER_STATUS_ALREADY_EXISTS("User status already exists"),
 
   // basic
-  VALIDATION_ERROR("Validation error"),
+  VALIDATION_ERROR("Validation failed"),
   INTERNAL_SERVER_ERROR("Internal server error");
 
   private final String message;
