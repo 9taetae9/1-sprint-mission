@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.4.0'
     id 'io.spring.dependency-management' version '1.1.6'
+    id 'jacoco'
 }
 
 group = 'com.sprint.mission'
@@ -46,6 +47,34 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-tasks.named('test') {
+// JaCoCo 설정
+jacoco {
+    toolVersion = "0.8.12"
+}
+
+test {
     useJUnitPlatform()
+    finalizedBy jacocoTestReport
+
+    // 테스트 실행 시 JaCoCo 에이전트 설정
+    jacoco {
+        destinationFile = file("${layout.buildDirectory.get()}/jacoco/jacocoTest.exec")
+        classDumpDir = file("${layout.buildDirectory.get()}/jacoco/classpathdumps")
+    }
+}
+
+// JaCoCo 리포트 생성 설정
+jacocoTestReport {
+    dependsOn test
+
+    reports {
+        xml.required = true
+        html.required = true
+    }
+
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, includes: ['com/sprint/mission/discodeit/service/basic/**'])
+        }))
+    }
 }
