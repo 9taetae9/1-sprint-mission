@@ -145,6 +145,38 @@ class BasicUserServiceTest {
   }
 
   @Test
+  void find_성공() {
+    // given
+    UUID userId = UUID.randomUUID();
+    User user = new User("finduser", "find@test.com", "password", null);
+    setId(user, userId);
+
+    UserDto expectedDto = new UserDto(userId, "finduser", "find@test.com", null, true);
+
+    given(userRepository.findById(userId)).willReturn(Optional.of(user));
+    given(userMapper.toDto(user)).willReturn(expectedDto);
+
+    // when
+    UserDto result = userService.find(userId);
+
+    // then
+    assertThat(result).isEqualTo(expectedDto);
+    then(userRepository).should(times(1)).findById(userId);
+  }
+
+  @Test
+  void find_실패_존재하지_않는_사용자() {
+    // given
+    UUID userId = UUID.randomUUID();
+    given(userRepository.findById(userId)).willReturn(Optional.empty());
+
+    // when, then
+    UserException exception = UserExceptions.notFound(userId);
+    assertThatThrownBy(() -> userService.find(userId))
+        .hasSameClassAs(exception);
+  }
+
+  @Test
   void update_성공() {
     UUID userId = UUID.randomUUID();
     UserUpdateRequest request = new UserUpdateRequest("newusername", "newemail@test.com",
@@ -170,6 +202,47 @@ class BasicUserServiceTest {
   }
 
   @Test
+  void update_성공_프로필_있음() {
+    // given
+    UUID userId = UUID.randomUUID();
+    UserUpdateRequest request = new UserUpdateRequest("newusername", "new@test.com", "newpassword");
+
+    BinaryContentCreateRequest profileContent = new BinaryContentCreateRequest(
+        "newprofile.jpg", "image/jpeg", new byte[]{1, 2, 3});
+    Optional<BinaryContentCreateRequest> profileRequest = Optional.of(profileContent);
+
+    User existingUser = new User("oldusername", "old@test.com", "oldpassword", null);
+    setId(existingUser, userId);
+
+    BinaryContent binaryContent = new BinaryContent(profileContent.fileName(),
+        (long) profileContent.bytes().length, profileContent.contentType());
+    UUID profileId = UUID.randomUUID();
+
+    UserDto expectedDto = new UserDto(userId, request.newUsername(), request.newEmail(), null,
+        true);
+
+    given(userRepository.findById(userId)).willReturn(Optional.of(existingUser));
+    given(userRepository.existsByEmail(request.newEmail())).willReturn(false);
+    given(userRepository.existsByUsername(request.newUsername())).willReturn(false);
+
+    given(binaryContentRepository.save(any(BinaryContent.class))).willAnswer(invocation -> {
+      BinaryContent savedContent = invocation.getArgument(0);
+      setId(savedContent, profileId);
+      return savedContent;
+    });
+
+    given(userMapper.toDto(existingUser)).willReturn(expectedDto);
+
+    // when
+    UserDto result = userService.update(userId, request, profileRequest);
+
+    // then
+    assertThat(result).isEqualTo(expectedDto);
+    then(binaryContentRepository).should(times(1)).save(any(BinaryContent.class));
+    then(binaryContentStorage).should(times(1)).put(profileId, profileContent.bytes());
+  }
+
+  @Test
   void update_실패_존재하지_않는_사용자() {
     UUID userId = UUID.randomUUID();
     UserUpdateRequest request = new UserUpdateRequest("newusername", "newemail@test.com",
@@ -182,6 +255,46 @@ class BasicUserServiceTest {
     UserException userException = UserExceptions.notFound(userId);
     assertThatThrownBy(() -> userService.update(userId, request, profileRequest))
         .hasSameClassAs(userException);
+  }
+
+  @Test
+  void update_실패_이메일_중복() {
+    // given
+    UUID userId = UUID.randomUUID();
+    UserUpdateRequest request = new UserUpdateRequest("newusername", "duplicate@test.com",
+        "newpassword");
+    Optional<BinaryContentCreateRequest> profileRequest = Optional.empty();
+
+    User existingUser = new User("oldusername", "old@test.com", "oldpassword", null);
+    setId(existingUser, userId);
+
+    given(userRepository.findById(userId)).willReturn(Optional.of(existingUser));
+    given(userRepository.existsByEmail(request.newEmail())).willReturn(true);
+
+    // when, then
+    UserException exception = UserExceptions.emailAlreadyExists(request.newEmail());
+    assertThatThrownBy(() -> userService.update(userId, request, profileRequest))
+        .hasSameClassAs(exception);
+  }
+
+  @Test
+  void update_실패_사용자명_중복() {
+    // given
+    UUID userId = UUID.randomUUID();
+    UserUpdateRequest request = new UserUpdateRequest("duplicate", "new@test.com", "newpassword");
+    Optional<BinaryContentCreateRequest> profileRequest = Optional.empty();
+
+    User existingUser = new User("oldusername", "old@test.com", "oldpassword", null);
+    setId(existingUser, userId);
+
+    given(userRepository.findById(userId)).willReturn(Optional.of(existingUser));
+    given(userRepository.existsByEmail(request.newEmail())).willReturn(false);
+    given(userRepository.existsByUsername(request.newUsername())).willReturn(true);
+
+    // when, then
+    UserException exception = UserExceptions.userNameAlreadyExists(request.newUsername());
+    assertThatThrownBy(() -> userService.update(userId, request, profileRequest))
+        .hasSameClassAs(exception);
   }
 
   @Test
