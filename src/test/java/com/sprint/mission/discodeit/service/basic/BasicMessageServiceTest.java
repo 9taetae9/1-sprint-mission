@@ -49,6 +49,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 
 @ExtendWith(MockitoExtension.class)
@@ -353,6 +354,39 @@ class BasicMessageServiceTest {
   }
 
   @Test
+  void findAllByChannelId_빈_결과() {
+    // given
+    UUID channelId = UUID.randomUUID();
+    Instant createdAt = Instant.now();
+    Pageable pageable = PageRequest.of(0, 10);
+
+    List<MessageDto> emptyList = Collections.emptyList();
+    SliceImpl<MessageDto> emptySlice = new SliceImpl<>(emptyList, pageable, false);
+
+    PageResponse<MessageDto> expectedResponse = new PageResponse<>(
+        emptyList,
+        null,
+        0,
+        false,
+        null
+    );
+
+    given(messageRepository.findAllByChannelIdWithAuthor(channelId, createdAt, pageable))
+        .willReturn(new SliceImpl<>(Collections.emptyList(), pageable, false));
+    given(pageResponseMapper.fromSlice(any(Slice.class), eq(null))).willReturn(expectedResponse);
+
+    // when
+    PageResponse<MessageDto> result = messageService.findAllByChannelId(channelId, createdAt,
+        pageable);
+
+    // then
+    assertThat(result).isEqualTo(expectedResponse);
+    then(messageRepository).should().findAllByChannelIdWithAuthor(channelId, createdAt, pageable);
+    then(pageResponseMapper).should().fromSlice(any(Slice.class), eq(null));
+  }
+
+
+  @Test
   void update_성공() {
     // given
     UUID messageId = UUID.randomUUID();
@@ -395,6 +429,7 @@ class BasicMessageServiceTest {
     assertThat(result).isEqualTo(expectedDto);
     assertThat(message.getContent()).isEqualTo(newContent);
   }
+
 
   @Test
   void update_실패_메시지_없음() {
