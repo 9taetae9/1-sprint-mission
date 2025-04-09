@@ -42,3 +42,6 @@ bin/
 .discodeit
 .qodo
 /.logs/
+
+# Docker environment variables
+.env
