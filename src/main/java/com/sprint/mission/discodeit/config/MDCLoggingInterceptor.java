@@ -36,8 +36,6 @@ public class MDCLoggingInterceptor implements HandlerInterceptor {
       Object handler,
       Exception ex) {
     // MDC 정리
-    MDC.remove(REQUEST_ID);
-    MDC.remove(REQUEST_METHOD);
-    MDC.remove(REQUEST_URI);
+    MDC.clear();
   }
 }
