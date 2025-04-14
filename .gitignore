@@ -45,3 +45,4 @@ bin/
 
 # Docker environment variables
 .env
+/discodeit.env
