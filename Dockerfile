@@ -23,7 +23,7 @@ JVM_OPTS=""
 
 # 빌드 스테이지에서 생성된 JAR 파일만 복사
 COPY --from=builder /app/build/libs/${PROJECT_NAME}-${PROJECT_VERSION}.jar ./app.jar
-d
+
 EXPOSE 80
 
 CMD java $JVM_OPTS -jar app.jar
