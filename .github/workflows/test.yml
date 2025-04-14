@@ -20,20 +20,16 @@ jobs:
           java-version: '17'
           distribution: 'corretto'
           cache: 'gradle'
-          cache-dependency-path: |
-            build.gradle
-            settings.gradle
-            gradle/**
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
       - name: Run tests with JaCoCo
         run: |
-          ./gradlew clean test jacocoTestReport --continue || exit 1
+          ./gradlew clean test jacocoTestReport
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         with:
           files: ./build/reports/jacoco/test/jacocoTestReport.xml
           fail_ci_if_error: true
